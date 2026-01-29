@@ -21,16 +21,13 @@ const secretarialComplianceRoutes = require('./routes/secretarialComplianceRoute
 const materialCreditorsRoutes = require('./routes/materialCreditorsRoutes');
 const industryReportRoutes = require('./routes/industryReportRoutes');
 const disclosureRoutes = require('./routes/disclosureRoutes');
-const announcementRoutes = require("./routes/announcementRoutes");
-const pagesRoutes = require("./routes/pages");
-const helpCentreRoutes = require("./routes/helpCentreRoutes");
-const pressRoutes = require("./routes/pressRoutes");
+const announcementRoutes = require('./routes/announcementRoutes');
+const pagesRoutes = require('./routes/pages');
+const helpCentreRoutes = require('./routes/helpCentreRoutes');
+const pressRoutes = require('./routes/pressRoutes');
 const policiesRoutes = require('./routes/policiesRoutes');
 
-
-
 const app = express();
-
 
 // -------------------- SECURITY --------------------
 app.disable('x-powered-by');
@@ -40,35 +37,22 @@ app.set('trust proxy', 1);
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-
-const allowedOrigins = [
-  'http://localhost:5173',
-  'http://127.0.0.1:5173',
-  'https://investor.symbiotec.com' 
-];
-
 app.use(cors({
   origin: [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "https://investor.symbiotec.com",
-    "https://symb.connectbizora.com"
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+    'https://investor.symbiotec.com',
+    'https://symb.connectbizora.com'
   ],
   credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-app.options('*', cors());
-
-
-
-// Add this right after the cors middleware to handle preflight manually if needed
-// app.options('*', cors());
-// -------------------- STATIC FILES --------------------
+// -------------------- STATIC --------------------
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// -------------------- HEALTH CHECK --------------------
+// -------------------- HEALTH --------------------
 app.get('/', (req, res) => {
   res.send('ROOT OK');
 });
@@ -95,17 +79,13 @@ app.use('/api/secretarial-compliance', secretarialComplianceRoutes);
 app.use('/api/material-creditors', materialCreditorsRoutes);
 app.use('/api/industry-reports', industryReportRoutes);
 app.use('/api/disclosures', disclosureRoutes);
-app.use("/api/announcements", announcementRoutes);
-app.use("/api/pages", pagesRoutes);
-app.use("/api/help-centre", helpCentreRoutes);
-app.use("/api/press", pressRoutes);
+app.use('/api/announcements', announcementRoutes);
+app.use('/api/pages', pagesRoutes);
+app.use('/api/help-centre', helpCentreRoutes);
+app.use('/api/press', pressRoutes);
 app.use('/api/policies', policiesRoutes);
 
-
-
-
-
-// -------------------- AUTO CREATE ADMIN (SAFE) --------------------
+// -------------------- AUTO ADMIN --------------------
 async function createDefaultAdmin() {
   try {
     const email = 'admin@symbiotec.com';
@@ -120,24 +100,24 @@ async function createDefaultAdmin() {
 
       await db.query(
         `INSERT INTO users 
-         (name, email, password, role, created_at, updated_at)
-         VALUES (?, ?, ?, ?, NOW(), NOW())`,
+        (name, email, password, role, created_at, updated_at)
+        VALUES (?, ?, ?, ?, NOW(), NOW())`,
         ['Admin', email, hashedPassword, 'admin']
       );
 
-      console.log('✅ Admin created');
-    } else {
-      console.log('ℹ️ Admin already exists');
+      console.log('Admin created');
     }
   } catch (err) {
-    console.error('⚠️ Admin init skipped:', err.message);
+    console.error('Admin init skipped:', err.message);
   }
 }
 
 // -------------------- START SERVER --------------------
-const PORT = process.env.PORT || 5000; // REQUIRED for cPanel
+const PORT = process.env.PORT; // ✅ Railway only
 
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  createDefaultAdmin(); // non-blocking
+  console.log(`Server running on port ${PORT}`);
 });
+
+// Delay DB logic so server never crashes
+setTimeout(createDefaultAdmin, 2000);
