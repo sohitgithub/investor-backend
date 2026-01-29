@@ -1,6 +1,4 @@
 node_modules/
-__MACOSX/
-*.zip
+.env
 stderr.log
 tmp/
-.env
