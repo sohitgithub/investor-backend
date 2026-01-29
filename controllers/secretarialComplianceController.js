@@ -1,0 +1,69 @@
+const db = require('../db');
+
+// 1. GET ALL
+exports.getAllDocuments = async (req, res) => {
+    try {
+        const query = 'SELECT * FROM secretarial_compliance ORDER BY created_at DESC';
+        const [rows] = await db.query(query);
+        res.json(rows);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Database error" });
+    }
+};
+
+// 2. CREATE
+exports.createDocument = async (req, res) => {
+    try {
+        const { title, category, financialYear } = req.body;
+        const pdfPath = req.file ? req.file.filename : null;
+
+        if (!title || !pdfPath || !category) {
+             return res.status(400).json({ error: "Title, Category, and File are required" });
+        }
+
+        const [result] = await db.query(
+            'INSERT INTO secretarial_compliance (title, category, financial_year, pdf_path) VALUES (?, ?, ?, ?)',
+            [title, category, financialYear || null, pdfPath]
+        );
+        res.json({ message: "Document added successfully", id: result.insertId });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Failed to add document" });
+    }
+};
+
+// 3. UPDATE
+exports.updateDocument = async (req, res) => {
+    try {
+        const id = req.params.id;
+        const { title, category, financialYear } = req.body;
+        
+        let query = 'UPDATE secretarial_compliance SET title=?, category=?, financial_year=?';
+        let params = [title, category, financialYear || null];
+
+        if (req.file) {
+            query += ', pdf_path=?';
+            params.push(req.file.filename);
+        }
+
+        query += ' WHERE id=?';
+        params.push(id);
+
+        await db.query(query, params);
+        res.json({ message: "Document updated successfully" });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Failed to update document" });
+    }
+};
+
+// 4. DELETE
+exports.deleteDocument = async (req, res) => {
+    try {
+        await db.query('DELETE FROM secretarial_compliance WHERE id = ?', [req.params.id]);
+        res.json({ message: "Document deleted successfully" });
+    } catch (err) {
+        res.status(500).json({ error: "Failed to delete document" });
+    }
+};
